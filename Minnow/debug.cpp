@@ -57,7 +57,11 @@ void DebugSerial::flush()
     debug_header[PM_CONTROL_BYTE_OFFSET] = CONTROL_BYTE_RESPONSE_DEBUG_BIT | (debug_sequence_number++ & CONTROL_BYTE_SEQUENCE_NUMBER_MASK);
     PSERIAL.write(debug_header, sizeof(debug_header));
     PSERIAL.write(debug_buf, debug_buf_len);
-    PSERIAL.write(crc8(&debug_header[1], PM_HEADER_SIZE + debug_buf_len - 1));
+    // take crc over header and parameter (except sync byte)
+    uint8_t crc = crc8(&debug_header[1], PM_HEADER_SIZE-1);
+    if (debug_buf_len > 0)
+      crc = crc8_continue(debug_buf, debug_buf_len, crc);
+    PSERIAL.write(crc);
     debug_buf_len = 0;
   }
 #elif USE_SERIAL_PORT_FOR_DEBUG
@@ -70,31 +74,43 @@ void DebugSerial::flush()
 /// imports from print.h
 
 
-void DebugSerial::print(bool error, long n, int base)
-{
-  if (base == 0) {
-    write(error, n);
-  } else if (base == 10) {
-    if (n < 0) {
-      print(error, '-');
-      n = -n;
-    }
-    printNumber(error, n, 10);
-  } else {
-    printNumber(error, n, base);
-  }
-}
-
-
 // Private Methods /////////////////////////////////////////////////////////////
 
-void DebugSerial::printNumber(bool error, unsigned long n, uint8_t base)
+void DebugSerial::printSignedNumber(bool error, long n, uint8_t base)
 {
   unsigned char buf[8 * sizeof(long)]; // Assumes 8-bit chars. 
-  unsigned long i = 0;
+  unsigned char i = 0;
 
+  if (n == 0) 
+  {
+    write(error, '0');
+    return;
+  } 
+
+  if (base == DEC && n < 0)
+  {
+    write(error, '-');
+    n = -n;
+  }
+  
+  while (n > 0) {
+    buf[i++] = n % base;
+    n /= base;
+  }
+
+  for (; i > 0; i--)
+    write(error, (char) (buf[i - 1] < 10 ?
+      '0' + buf[i - 1] :
+      'A' + buf[i - 1] - 10));
+}
+
+void DebugSerial::printUnsignedNumber(bool error, unsigned long n, uint8_t base)
+{
+  unsigned char buf[8 * sizeof(unsigned long)]; // Assumes 8-bit chars. 
+  unsigned char i = 0;
+ 
   if (n == 0) {
-    print(error, '0');
+    write(error, '0');
     return;
   } 
 
@@ -104,7 +120,7 @@ void DebugSerial::printNumber(bool error, unsigned long n, uint8_t base)
   }
 
   for (; i > 0; i--)
-    print(error, (char) (buf[i - 1] < 10 ?
+    write(error, (char) (buf[i - 1] < 10 ?
       '0' + buf[i - 1] :
       'A' + buf[i - 1] - 10));
 }

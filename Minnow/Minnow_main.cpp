@@ -191,10 +191,10 @@ void apply_debug_commands()
       COMMAND("system.num_temp_sensors=3")
       COMMAND("devices.temp_sensor.0.name = HEND1")
       COMMAND("devices.temp_sensor.0.pin = 8")
-      COMMAND("devices.temp_sensor.0.type = -1")
+      COMMAND("devices.temp_sensor.0.type = 7")
       COMMAND("devices.temp_sensor.1.name = HEND2")
       COMMAND("devices.temp_sensor.1.pin = 9")
-      COMMAND("devices.temp_sensor.1.type = 7")
+      COMMAND("devices.temp_sensor.1.type = -1")
       COMMAND("devices.temp_sensor.2.name = HBED")
       COMMAND("devices.temp_sensor.2.pin = 10")
       COMMAND("devices.temp_sensor.2.type = 1")
@@ -202,28 +202,34 @@ void apply_debug_commands()
       COMMAND("system.num_digital_inputs = 4")
       COMMAND("devices.digital_input.0.name=XMIN")
       COMMAND("devices.digital_input.0.pin=3")
+      COMMAND("devices.digital_input.0.trigger_level=0")
+      COMMAND("devices.digital_input.0.enable_pullup=1")
       COMMAND("devices.digital_input.1.name=YMIN")
       COMMAND("devices.digital_input.1.pin=14")
+      COMMAND("devices.digital_input.1.trigger_level=0")
+      COMMAND("devices.digital_input.1.enable_pullup=1")
       COMMAND("devices.digital_input.2.name=ZMIN")
       COMMAND("devices.digital_input.2.pin=18")
+      COMMAND("devices.digital_input.2.trigger_level=1")
+      COMMAND("devices.digital_input.2.enable_pullup=1")
 
       COMMAND("devices.digital_input.3.pin = 11")
       COMMAND("devices.digital_input.3.enable_pullup=1")
 
       COMMAND("system.num_digital_outputs = 3")
-      COMMAND("devices.digital_output.0.pin = 13")
+      COMMAND("devices.digital_output.0.pin = 5")
       COMMAND("devices.digital_output.0.initial_state = highz")
 
-      COMMAND("devices.digital_output.1.pin = 5")
+      COMMAND("devices.digital_output.1.pin = 6")
       COMMAND("devices.digital_output.1.initial_state = low")
 
-      COMMAND("devices.digital_output.2.pin = 6")
-      COMMAND("devices.digital_output.2.initial_state = low")
-      
       COMMAND("system.num_pwm_outputs = 1")
       COMMAND("devices.pwm_output.0.name = FAN")
-      COMMAND("devices.pwm_output.0.pin = 7")
+      COMMAND("devices.pwm_output.0.pin = 4")
       COMMAND("devices.pwm_output.0.use_soft_pwm = 0")
+
+      COMMAND("system.num_buzzers = 1")
+      COMMAND("devices.buzzer.0.pin = 33")
 
       COMMAND("system.num_steppers=5")
       COMMAND("devices.stepper.0.name=X")
@@ -291,12 +297,14 @@ void apply_debug_commands()
   DEBUG_COMMAND_ARRAY("Request Board Name", ORDER_REQUEST_INFORMATION, ARRAY({ PARAM_REQUEST_INFO_BOARD_NAME }) ); 
   DEBUG_COMMAND_ARRAY("Request Hardware Type", ORDER_REQUEST_INFORMATION, ARRAY({ PARAM_REQUEST_INFO_HARDWARE_TYPE }) ); 
 
-  DEBUG_COMMAND_ARRAY("RFCV", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.heater.0.pid_range");
-  DEBUG_COMMAND_ARRAY("RFCV", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.heater.0.use_soft_pwm");
+  DEBUG_COMMAND_ARRAY("RFCV pid_range", ORDER_READ_FIRMWARE_CONFIG_VALUE, "devices.heater.0.pid_range");
+  DEBUG_COMMAND_ARRAY("RFCV soft_pwm", ORDER_READ_FIRMWARE_CONFIG_VALUE, "devices.heater.0.use_soft_pwm");
+  DEBUG_COMMAND_ARRAY("RFCV use_pid", ORDER_READ_FIRMWARE_CONFIG_VALUE, "devices.heater.0.use_pid");
+  DEBUG_COMMAND_ARRAY("RFCV use_bang_bang", ORDER_READ_FIRMWARE_CONFIG_VALUE, "devices.heater.0.use_bang_bang");
 
-  DEBUG_COMMAND_ARRAY("RFCV", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.stack_memory");
-  DEBUG_COMMAND_ARRAY("RFCV", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.stack_low_water_mark");
-  DEBUG_COMMAND_ARRAY("RFCV", ORDER_READ_FIRMWARE_CONFIG_VALUE, "stats.queue_memory");
+  DEBUG_COMMAND_ARRAY("RFCV stack_mem", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.stack_memory");
+  DEBUG_COMMAND_ARRAY("RFCV stack_lwm", ORDER_READ_FIRMWARE_CONFIG_VALUE, "debug.stack_low_water_mark");
+  DEBUG_COMMAND_ARRAY("RFCV queue_mem", ORDER_READ_FIRMWARE_CONFIG_VALUE, "stats.queue_memory");
 
   DEBUG_COMMAND_STR("Request Num Output Switches", ORDER_DEVICE_COUNT, "\x01" );
   DEBUG_COMMAND_ARRAY("Request Input Switch 0", ORDER_GET_INPUT_SWITCH_STATE, ARRAY({ PM_DEVICE_TYPE_SWITCH_INPUT, 0 }) );
@@ -311,17 +319,24 @@ void apply_debug_commands()
    
 //  DEBUG_COMMAND_ARRAY("Set Buzzer Output 0", ORDER_SET_PWM_OUTPUT_STATE, ARRAY({ PM_DEVICE_TYPE_BUZZER, 0, 128, 0 }) );
 
-  DEBUG_COMMAND_ARRAY("Configure Endstops 0", ORDER_CONFIGURE_ENDSTOPS, ARRAY({ 0, 0, 0, 0  }) );
-  DEBUG_COMMAND_ARRAY("Configure Endstops 1", ORDER_CONFIGURE_ENDSTOPS, ARRAY({ 1, 1, 0, 0, 2, 0, 0 }) );
+  DEBUG_COMMAND_ARRAY("Configure Endstops 0", ORDER_CONFIGURE_ENDSTOPS, ARRAY({ 0, 0, 0 }) );
+  DEBUG_COMMAND_ARRAY("Configure Endstops 1", ORDER_CONFIGURE_ENDSTOPS, ARRAY({ 1, 1, 0, 2, 0 }) );
 
-  DEBUG_COMMAND_ARRAY("Configure Axis Rates", ORDER_CONFIGURE_AXIS_MOVEMENT_RATES, ARRAY({ (28000/256), (28000%256), \
-      (28000/256), (28000%256), (11200/256), (11200%256), (56700/256), (56700%256) }) );
+  DEBUG_COMMAND_ARRAY("Configure Axis Rate 0", ORDER_CONFIGURE_AXIS_MOVEMENT_RATES, ARRAY({ 0, 0, 0, (28000/256), (28000%256)}) ); 
+  DEBUG_COMMAND_ARRAY("Configure Axis Rate 1", ORDER_CONFIGURE_AXIS_MOVEMENT_RATES, ARRAY({ 1, 0, 0, (28000/256), (28000%256)}) ); 
+  DEBUG_COMMAND_ARRAY("Configure Axis Rate 2", ORDER_CONFIGURE_AXIS_MOVEMENT_RATES, ARRAY({ 2, 0, 0, (11200/256), (11200%256)}) ); 
+  DEBUG_COMMAND_ARRAY("Configure Axis Rate 3", ORDER_CONFIGURE_AXIS_MOVEMENT_RATES, ARRAY({ 3, 0, 0, (56700/256), (56700%256)}) ); 
+
+  DEBUG_COMMAND_ARRAY("Configure Underrun Rate 0", ORDER_CONFIGURE_UNDERRUN_PARAMS, ARRAY({ 0, 
+    0, 0, (28000/256), (28000%256), 0, 0, (65000/256), (65000%256)}) ); 
+  DEBUG_COMMAND_ARRAY("Configure Underrun Rate 1", ORDER_CONFIGURE_UNDERRUN_PARAMS, ARRAY({ 1, 
+    0, 0, (28000/256), (28000%256), 0, 0, (65000/256), (65000%256)}) ); 
 
   DEBUG_COMMAND_ARRAY("Activate Stepper Control", ORDER_ACTIVATE_STEPPER_CONTROL, ARRAY({ 1 }) );
 
   DEBUG_COMMAND_ARRAY("Set Stepper Enable (Empty)", ORDER_ENABLE_DISABLE_STEPPERS, ARRAY({  }) );
 
-//  DEBUG_COMMAND_ARRAY("Set Stepper Enable", ORDER_ENABLE_DISABLE_STEPPERS, ARRAY({ 0, 1, 1, 0 }) );
+//  DEBUG_COMMAND_ARRAY("Set Stepper Enable 1", ORDER_ENABLE_DISABLE_STEPPERS, ARRAY({ 0, 1, 1, 0 }) );
   
   DEBUG_COMMAND_STR("Flush Command Queue", ORDER_CLEAR_COMMAND_QUEUE, "" );
   
@@ -330,8 +345,127 @@ void apply_debug_commands()
   
   DEBUG_COMMAND_ARRAY("Get Heater Configuration", ORDER_GET_HEATER_CONFIGURATION, ARRAY({ 0 }) );
 
+  // Test enqueue command
+  DEBUG_COMMAND_ARRAY("Enqueue Move 1", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+    0x0C, 0x03, 0x01, 0xFF, 0x00, 0x26, 0x26, 0x02, 0x30, 0x00, 0x00, 0x02, 0x30 }));
+  
+  DEBUG_COMMAND_ARRAY("Enqueue Endstops", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+    0x6, 0x01, 0x10, 0x00, 0x01, 0x01, 0x01 }));
+
+  DEBUG_COMMAND_ARRAY("Enqueue Move 2", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+    0x0E, 0x03, 0x03, 0xFF, 0x01, 0xDC, 0x00, 0x07, 0x46, 0x07, 0x47, 0x02, 0x30, 0x0E, 0x8D }));
+
+  DEBUG_COMMAND_ARRAY("Enqueue Set Pwm Output 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      6, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_PWM_OUTPUT_STATE, PM_DEVICE_TYPE_PWM_OUTPUT, 0, 200, 0 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+   DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+   DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Reset Pwm Output 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      6, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_PWM_OUTPUT_STATE, PM_DEVICE_TYPE_PWM_OUTPUT, 0, 0, 0 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Set Output 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      5, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_OUTPUT_SWITCH_STATE, PM_DEVICE_TYPE_SWITCH_OUTPUT, 0, 1 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+   DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+   DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Set Output 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      5, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_OUTPUT_SWITCH_STATE, PM_DEVICE_TYPE_SWITCH_OUTPUT, 0, 0 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Set Output Tone 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      6, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_OUTPUT_TONE, PM_DEVICE_TYPE_BUZZER, 0, 1024/255, 0 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Set Output Tone 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      6, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_SET_OUTPUT_TONE, PM_DEVICE_TYPE_BUZZER, 0, 0, 0 }) );  
+      
+  DEBUG_COMMAND_ARRAY("Enqueue Enable Stepper 1", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      4, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_ENABLE_DISABLE_STEPPERS, 0, 1 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Delay", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      3, QUEUE_COMMAND_DELAY, 255, 255 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Disable all Steppers", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      2, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_ENABLE_DISABLE_STEPPERS }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Enable Endstop 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      4, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_ENABLE_DISABLE_ENDSTOPS, 0, 1 }) );  
+
+  DEBUG_COMMAND_ARRAY("Enqueue Disable Endstop 0", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      4, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_ENABLE_DISABLE_ENDSTOPS, 0, 0 }) );  
+
+  // movement test
+  
+  DEBUG_COMMAND_ARRAY("Configure Min Endstop 1 for Stepper 0", ORDER_CONFIGURE_ENDSTOPS, ARRAY({ 0, 1, 0 }) );
+
+  DEBUG_COMMAND_ARRAY("Enqueue Enable Endstop 1", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      4, QUEUE_COMMAND_ORDER_WRAPPER,
+      ORDER_ENABLE_DISABLE_ENDSTOPS, 1, 1 }) );  
+
+  DEBUG_COMMAND_ARRAY("Home To Axis 0 Min", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      9, QUEUE_COMMAND_LINEAR_MOVE, /*axes:*/ 1 , /*count size & directions:*/0, /* flags & prim axis */ 0x10,
+      /*nom speed:*/ 25 , /* final speed: */ 0, /* initial accel*/ 100, /* final accel */100, /* steps on 0 */ 255}));
+      
+  DEBUG_COMMAND_ARRAY("Move checkpoint", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 1, QUEUE_COMMAND_MOVEMENT_CHECKPOINT}));
+     
+  DEBUG_COMMAND_ARRAY("Home To Axis 0 Min", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      9, QUEUE_COMMAND_LINEAR_MOVE, /*axes:*/ 1 , /*count size & directions:*/0, /* flags & prim axis */ 0x10,
+      /*nom speed:*/ 25 , /* final speed: */ 0, /* initial accel*/ 100, /* final accel */100, /* steps on 0 */ 255}));
+      
+  DEBUG_COMMAND_ARRAY("Move checkpoint", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 1, QUEUE_COMMAND_MOVEMENT_CHECKPOINT}));
+
+  DEBUG_COMMAND_ARRAY("Request Input Switch 0", ORDER_GET_INPUT_SWITCH_STATE, ARRAY({ PM_DEVICE_TYPE_SWITCH_INPUT, 0 }) );
+  DEBUG_COMMAND_ARRAY("Request Input Switch 1", ORDER_GET_INPUT_SWITCH_STATE, ARRAY({ PM_DEVICE_TYPE_SWITCH_INPUT, 1 }) );
+  DEBUG_COMMAND_ARRAY("Request Input Switch 2", ORDER_GET_INPUT_SWITCH_STATE, ARRAY({ PM_DEVICE_TYPE_SWITCH_INPUT, 2 }) );
+
+  DEBUG_COMMAND_ARRAY("Move X+10", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      9, QUEUE_COMMAND_LINEAR_MOVE, /*axes:*/ 1 , /*count size & directions:*/1, /* flags & prim axis */ 0,
+      /*nom speed:*/ 25 , /* final speed: */ 0, /* initial accel*/ 100, /* final accel */100, /* steps on 0 */ 255}));
+
+  DEBUG_COMMAND_ARRAY("Move Y+10", ORDER_QUEUE_COMMAND_BLOCKS, ARRAY({ 
+      9, QUEUE_COMMAND_LINEAR_MOVE, /*axes:*/ 2 , /*count size & directions:*/1, /* flags & prim axis */ 1,
+      /*nom speed:*/ 25 , /* final speed: */ 0, /* initial accel*/ 100, /* final accel */100, /* steps on 0 */ 255}));
+      
+  
   // read sensors a few times (allows time to stabilize)
-  for (uint8_t i = 0; i < 3; i++)
+  for (uint8_t i = 0; i < 8; i++)
   {
     while (!temp_meas_ready)
       ;
@@ -339,7 +473,7 @@ void apply_debug_commands()
   }
 
   //DEBUG_COMMAND_ARRAY("Set Heater Target Temp", ORDER_SET_HEATER_TARGET_TEMP, ARRAY({ 0, (750/256), (750%256) }) );
-  
+
 #endif
 }
 
@@ -455,6 +589,7 @@ FORCE_INLINE static bool get_command()
 
 void loop()
 {
+
   // quickly scan through baudrates until we receive a valid packet within timeout period
 #if 0 // the baud rate change still isn't working for some reason.
   if (autodetect_baudrates_index != 0xFF)
@@ -492,7 +627,7 @@ void loop()
     DEBUGPGM("):");  
     for (uint8_t i = 0; i < parameter_length; i++)
     {
-      DEBUG(' '); 
+      DEBUG_CH(' '); 
       DEBUG_F(recv_buf[i], HEX);  
     }
     DEBUG_EOL();
@@ -558,6 +693,9 @@ void loop()
       }
     }
 #endif
+#if TRACE_MOVEMENT
+    print_movement_ISR_state();
+#endif
     last_idle_check = now;
   }
 }
@@ -565,6 +703,9 @@ void loop()
 void emergency_stop(uint8_t new_stopped_cause, uint8_t new_stopped_type
                               /* = PARAM_STOPPED_TYPE_ONE_TIME_OR_CLEARED */)
 {
+  ERROR("Stopping: cause="); // TODO improve with error reason /Language-ify
+  ERRORLN(new_stopped_cause);
+  
   uint8_t i;
   is_stopped = true; 
   stopped_is_acknowledged = false;

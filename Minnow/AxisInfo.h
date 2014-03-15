@@ -57,7 +57,7 @@ struct AxisInfoInternal
   uint32_t underrun_accel_rate;
   
   // used by ISR
-  uint16_t step_event_counter;
+  int16_t step_event_counter;
 };
 
 //
@@ -76,7 +76,7 @@ public:
   
   FORCE_INLINE static bool IsInUse(uint8_t axis_number)
   {
-    return Device_Stepper::ValidateConfig(axis_number);
+    return (Device_Stepper::ValidateConfig(axis_number) == APP_ERROR_TYPE_SUCCESS);
   }
 
   FORCE_INLINE static bool GetStepperEnableInvert(uint8_t axis_number)
@@ -119,8 +119,8 @@ public:
 
   // Endstop Configuration
   static uint8_t ClearEndstops(uint8_t axis_number);
-  static uint8_t SetMaxEndstopDevice(uint8_t axis_number, uint8_t input_switch_number, bool trigger_level);
-  static uint8_t SetMinEndstopDevice(uint8_t axis_number, uint8_t input_switch_number, bool trigger_level);
+  static uint8_t SetMaxEndstopDevice(uint8_t axis_number, uint8_t input_switch_number);
+  static uint8_t SetMinEndstopDevice(uint8_t axis_number, uint8_t input_switch_number);
 
   // Movement rate configuration
   static uint8_t SetAxisMaxRate(uint8_t axis_number, uint16_t rate);
@@ -202,9 +202,10 @@ public:
 
 private:
 
-  friend void check_endstops();
+  friend bool check_endstops();
   friend bool check_underrun_condition();
   friend uint8_t enqueue_linear_move_command(const uint8_t *parameter, uint8_t parameter_length);
+  friend void setup_new_move();
   friend void update_directions_and_initial_counts();
 
   static uint8_t num_axes;
@@ -215,7 +216,6 @@ private:
   
   // endstop information which is stored independently of axis_number
   static BITMASK(MAX_ENDSTOPS) endstop_enable_state;
-  static BITMASK(MAX_ENDSTOPS) endstop_trigger_level;
   
   // underrun info
   static uint16_t underrun_disable_queue_time;
